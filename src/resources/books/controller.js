@@ -40,6 +40,10 @@ function getOneById(req, res) {
 }
 
 async function updateOneById(req, res) {
+  const bookToUpdate = {
+    id: req.params.id,
+    ...req.body,
+  };
   console.log({ params: req.params, body: req.body });
 
   const updateOneByIdSQL = `
@@ -57,11 +61,12 @@ async function updateOneById(req, res) {
 
   try {
     const result = await db.query(updateOneByIdSQL, [
-      updateOneById.title,
-      updateOneById.author,
-      updateOneById.type,
-      updateOneById.topic,
-      updateOneById.publicationDate,
+      bookToUpdate.title,
+      bookToUpdate.author,
+      bookToUpdate.type,
+      bookToUpdate.topic,
+      bookToUpdate.publicationDate,
+      bookToUpdate.id,
     ]);
 
     res.json({ data: result.rows[0] });
@@ -72,9 +77,67 @@ async function updateOneById(req, res) {
   }
 }
 
+function updateByIdDynam(req, res) {
+  const id = req.params.id;
+  console.log("req.body: ", req.body);
+  const bookToUpdate = req.body;
+
+  let updateByIdDynamSQLTemplate = "UPDATE books SET ";
+
+  console.log(bookToUpdate);
+
+  const updateByIdDynamSQLParams = [];
+
+  let i = 1;
+  for (const key in bookToUpdate) {
+    updateByIdDynamSQLTemplate += `${key} = $${i}`;
+    updateByIdDynamSQLTemplate += `,`;
+    updateByIdDynamSQLParams.push(bookToUpdate[key]);
+    i += 1;
+  }
+  updateByIdDynamSQLParams.push(id);
+
+  updateByIdDynamSQLTemplate = updateByIdDynamSQLTemplate.slice(
+    0,
+    updateByIdDynamSQLTemplate.length - 1
+  );
+  updateByIdDynamSQLTemplate += ` WHERE id = $${i}`;
+  updateByIdDynamSQLTemplate += ` RETURNING *`;
+
+  console.log("TEMPLATE --> ", updateByIdDynamSQLTemplate);
+  console.log("PARAMS --> ", updateByIdDynamSQLParams);
+
+  db.query(updateByIdDynamSQLTemplate, updateByIdDynamSQLParams)
+    .then((result) => res.json({ data: result.rows[0] }))
+    .catch(console.error);
+}
+
+function deleteOneById(req, res) {
+  const id = req.params.id;
+
+  const deleteOneByIdSQL = "DELETE FROM books WHERE id = $1";
+
+  db.query(deleteOneByIdSQL, [id])
+    .then((result) => res.json({ message: "Delete successful" }))
+    .catch(console.log);
+}
+
+function deleteOneByTitle(req, res) {
+  const title = req.params.title;
+
+  const deleteOneByTitleSQL = "DELETE FROM books WHERE title = $1";
+
+  db.query(deleteOneByTitleSQL, [title])
+    .then((result) => res.json({ message: "Delete by name successful!" }))
+    .catch(console.log);
+}
+
 module.exports = {
   createOne,
   getAll,
   getOneById,
   updateOneById,
+  updateByIdDynam,
+  deleteOneById,
+  deleteOneByTitle,
 };

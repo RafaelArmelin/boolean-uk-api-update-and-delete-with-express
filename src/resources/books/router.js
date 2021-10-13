@@ -5,6 +5,9 @@ const {
   getAll,
   getOneById,
   updateOneById,
+  updateByIdDynam,
+  deleteOneById,
+  deleteOneByTitle,
 } = require("./controller");
 
 const router = express.Router();
@@ -16,5 +19,11 @@ router.get("/", getAll);
 router.get("/:id", getOneById);
 
 router.put("/:id", updateOneById);
+
+router.patch("/:id", updateByIdDynam);
+
+router.delete("/:id", deleteOneById);
+
+router.delete("/:title", deleteOneByTitle);
 
 module.exports = router;
